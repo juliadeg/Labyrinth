@@ -7,7 +7,7 @@ classDiagram
         int x
         int y
 
-        toTuple() : tuple
+        to_tuple() : tuple
         __eq__(other: Position) : bool
     }
 
@@ -15,32 +15,32 @@ classDiagram
         list~~ scope
         relation
 
+        is_satisfied(assignment: tuple) : bool
         arity() : int
     }
     
-    class TableConstraint{
-        is_satisfied() : bool
+    class UnaryConstraint{
+
+        }
+
+    Constraint <|-- UnaryConstraint
+
+    class BinaryConstraint{
+        
     }
 
-    Constraint <|-- TableConstraint
-
-    class PredicateConstraint{
-        is_satisfied(assignment: tuple) : bool
-    }
-
-    Constraint <|-- PredicateConstraint
+    Constraint <|-- BinaryConstraint
 
     class CSP {
         variables : list 
         domain : list~list~
         constraints: list~Constraint~ = None
         
-        binary_constraints() : list
+        neighbours(variable) : list
+        
         binary_constraints_involving(x, y) : list~Constraint~
 
         constraints_for(variable) : list~Constraint~
-
-        neighbours(variable) : list
 
         degree(variable, current_assignment: dict) : int
         
