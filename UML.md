@@ -62,3 +62,18 @@ classDiagram
     }
 
 ```
+
+
+# UML for Searching 
+
+```mermaid
+classDiagram
+    class Labyrinth {
+        list~list~int~~ grid
+
+        is_wall(pos: Position) bool
+
+        is_insid(pos: Position) bool  
+
+    }
+```

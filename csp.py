@@ -1,26 +1,5 @@
 from collections import deque
 
-class Position: 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def to_tuple(self) -> tuple: 
-        return (self.x,self.y)
-    
-    def __eq__(self, other):
-        if not isinstance(other, Position):
-            return NotImplemented
-        return (self.x == other.x and self.y == other.y)
-
-def cord_to_index(position: Position, n: int):
-    return position.x * n + position.y
-
-def index_to_cord(index: int, n: int): 
-    x = index // n
-    y = index % n
-    return Position(x, y)
-
 class Constraint: 
     def __init__(self, scope: list, relation): 
         self.scope = scope
@@ -80,8 +59,8 @@ class CSP:
         
             return list(matching_constraints)
 
-    def _prune_domain(self, variable, values: list):
-        self.domain[variable].remove(values)
+    def _prune_domain(self, variable, value):
+        self.domain[variable].remove(value)
 
     def _unassigned(self, current_assignment: dict) -> list:
 
@@ -197,14 +176,14 @@ class CSP:
 
     
     def backtracking_search(self):
-        assignement = dict()
+        assignment = dict()
 
         # Pick variable:
-        variable = self._degree_heuristic(assignement)
+        variable = self._degree_heuristic(assignment)
 
         # Pick value:
         value = None
 
-        return assignement
+        return assignment
     
 
