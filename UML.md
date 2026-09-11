@@ -7,16 +7,16 @@ classDiagram
         int x
         int y
 
-        to_tuple() : tuple
-        __eq__(other: Position) : bool
+        to_tuple() tuple
+        __eq__(other: Position) bool
     }
 
     class Constraint {
         list~~ scope
         relation
 
-        is_satisfied(assignment: tuple) : bool
-        arity() : int
+        is_satisfied(assignment: tuple) bool
+        arity() int
     }
     
     class UnaryConstraint{
@@ -35,18 +35,20 @@ classDiagram
         variables : list 
         domain : list~list~
         constraints: list~Constraint~ = None
-        
-        neighbours(variable) : list
-        
-        binary_constraints_involving(x, y) : list~Constraint~
 
-        constraints_for(variable) : list~Constraint~
+        binary_constraints() list~BinaryConstraint~
+        
+        neighbours(variable) list
+        
+        binary_constraints_involving(x, y) list~Constraint~
 
-        degree(variable, current_assignment: dict) : int
+        constraints_for(variable) list~Constraint~
+
+        degree(variable, current_assignment: dict) int
         
         _prune_domain(variable, values: list)
 
-        _unassigned(current_assignment: dict) : list 
+        _unassigned(current_assignment: dict) list 
 
         _least_constraining_value()
 
@@ -56,7 +58,7 @@ classDiagram
 
         _degree_heuristic(current_assignment: dict)
 
-        _ac3() : bool
+        _ac3() bool
     }
 
 ```
