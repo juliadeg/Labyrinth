@@ -11,8 +11,13 @@ actions = [
 ]
 
 class Labyrinth:
-    def __init__(self, grid: list[list[int]]): 
-        self.grid = grid
+    def __init__(self, grid: list[list[int]] | list[int]): 
+        if isinstance(grid[0], int): 
+            None
+            # TO-DO: Turn Flat list into matrix
+        else: 
+            self.grid = grid
+
 
     def is_wall(self, pos: Position) -> bool: 
         return self.grid[pos.x][pos.y] == 1
@@ -157,4 +162,8 @@ class Search:
     
                         if new_state_coordinates not in current_path:
                             stack.append(new_state)
-        return result                            
+        return result
+
+
+
+
