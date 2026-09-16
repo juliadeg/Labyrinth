@@ -38,15 +38,21 @@ class CSP:
                 variable_constraints.append(constraint)
         return variable_constraints
 
-    def neighbours(self, variable) -> list: 
+    # Optional argument: Only show binary neighbpurs (for ac3)
+    def neighbours(self, variable, arity: int | None = None ) -> list: 
         neighbours = set()
         variable_constraints = self.constraints_for(variable)
 
-        for constraint in variable_constraints: 
-            if constraint.arity() == 2: 
+        if arity is not None: 
+            for constraint in variable_constraints: 
+                if constraint.arity() == arity: 
+                    neighbours.update(constraint.scope)
+        else:  
+            for constraint in variable_constraints: 
                 neighbours.update(constraint.scope)
 
-        neighbours.discard(variable)
+        neighbours.discard(variable) # Remove the variable whos neighbours we are looking for 
+
         return list(neighbours)
     
     def binary_constraints_involving(self, x, y) -> list[Constraint]: 
@@ -72,9 +78,8 @@ class CSP:
 
         return unassigned
 
-    def _least_constraining_value(self) -> int:
-        
-        return 
+
+    
     
     def degree(self, variable: int, current_assignment: dict):
 
@@ -101,6 +106,24 @@ class CSP:
         
         None
 
+    def _lcv(self, variable: int, assignment: dict): 
+
+        # number of conflicts / ruleouts
+
+        conflicts = []
+
+        # Assign one of the possible values
+        for value in self.domain[variable]: 
+            assignment[variable] = value 
+
+        # Check constraints
+        for variable in self.neighbours(variable): 
+            
+
+        
+
+        None
+
     def _degree_heuristic(self, current_assignment: dict) -> int: 
 
         unassigned_variables = self._unassigned(current_assignment)
@@ -118,6 +141,10 @@ class CSP:
 
     def _ac3(self) -> bool: 
 
+        # Case of empty domain
+        if any(not self.domain[var] for var in self.variables):
+            return False
+
         def _revise(x_var, y_var) -> bool: 
 
             revised = False
@@ -131,7 +158,12 @@ class CSP:
                     y_value_found = True
 
                     for constraint in binary_constraints: 
-                        if not constraint.is_satisfied((x_value, y_value)):
+                        if constraint.scope[0] == x_var:
+                            values = (x_value, y_value)
+                        else:
+                            values = (y_value, x_value)
+
+                        if not constraint.is_satisfied(values):
                             y_value_found = False
                             break 
 
@@ -186,4 +218,3 @@ class CSP:
 
         return assignment
     
-

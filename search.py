@@ -18,7 +18,6 @@ class Labyrinth:
         else: 
             self.grid = grid
 
-
     def is_wall(self, pos: Position) -> bool: 
         return self.grid[pos.x][pos.y] == 1
 
