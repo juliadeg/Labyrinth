@@ -3,19 +3,14 @@
 
 ```mermaid
 classDiagram
-    class Position {
-        int x
-        int y
-
-        to_tuple() tuple
-        __eq__(other: Position) bool
-    }
 
     class Constraint {
         list~~ scope
         relation
 
-        is_satisfied(assignment: tuple) bool
+        is_satisfied(assignment: dict) bool
+        is_consistent(partial_assignment: dict) bool
+
         arity() int
     }
     
@@ -37,28 +32,32 @@ classDiagram
         constraints: list~Constraint~ = None
 
         binary_constraints() list~BinaryConstraint~
+
+        constraints_for(variable) list~Constraint~
         
         neighbours(variable) list
         
         binary_constraints_involving(x, y) list~Constraint~
 
-        constraints_for(variable) list~Constraint~
+        _prune_domain(variable, values: list)
+
+        _unassigned(current_assignment: dict) list
+
+        _assigned(current_assignment: dict) list 
 
         degree(variable, current_assignment: dict) int
         
-        _prune_domain(variable, values: list)
-
-        _unassigned(current_assignment: dict) list 
-
-        _least_constraining_value()
-
-        backtracking_search()
-
         _mrv()
 
-        _degree_heuristic(current_assignment: dict)
+        
+
+        _lcv(variable, assignment: dict) 
+
+        _degree_heuristic(current_assignment: dict) int
 
         _ac3() bool
+
+        backtracking_search()
     }
 
 ```

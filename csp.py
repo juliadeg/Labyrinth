@@ -117,7 +117,7 @@ class CSP:
         return unassigned
 
     def _assigned(self, current_assignment: dict) -> list:
-
+        # TO-DO, simply use unassigned function here
         assigned = []
 
         for variable in self.variables:
@@ -126,8 +126,6 @@ class CSP:
 
         return assigned
 
-
-    
     
     def degree(self, variable: int, current_assignment: dict):
 
