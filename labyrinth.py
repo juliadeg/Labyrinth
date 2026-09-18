@@ -6,27 +6,13 @@ from csp import (
 )
 
 from search import (
-    BFS, 
+    Search,
     State, 
-    Labyrinth
+    Labyrinth,
+    Position
 )
 
-
-
-
-
-class Position: 
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-    def to_tuple(self) -> tuple: 
-        return (self.x,self.y)
-    
-    def __eq__(self, other):
-        if not isinstance(other, Position):
-            return NotImplemented
-        return (self.x == other.x and self.y == other.y)
+from collections import deque
 
 def permutate(default, k, n): 
     permutations = []
@@ -36,7 +22,6 @@ def permutate(default, k, n):
         permutations.append(tuple)
 
     return permutations
-
 
 def coord_to_index(position: Position, n: int) -> int:
     return position.x * n + position.y
@@ -143,24 +128,51 @@ def create_block_constraints(variables, n: int) -> list[Constraint]:
             block_constraints.append(Constraint(square, block_is_valid)) 
 
     return block_constraints
-    
 
-def create_reachability_constraints(variables, n: int):
+def create_reachability_constraints(variables, n: int): 
 
-    def reachable(assignment: dict):  # TO-DO: Change assgignment to dictionary? 
+# TO-DO: if we pass csp we dont need variables
 
-        # labyrinth = Labyrinth()
+    def reachable(assignment: dict):  
+
+        temp_assignment = assignment.copy()
+
+        border_variables = [x for x in variables if is_border(x, n)]
+        inner_variables = [x for x in variables if x not in border_variables]
         
-        for _ in range(n)
-            if 
-        state = State()
+        # Assign all unassigned fields to 0
+        for i in range(len(temp_assignment)):
+            if temp_assignment[i] is None: 
+                temp_assignment[i] = 0
 
-         
-        for value in assignment:
-            if value == 1 and BFS(assignment): 
+        # Consider every possible entry points
+
+        entry_points = [] # List of possible entry variables 
+
+        for cell in border_variables: 
+            if is_left_border(cell, n) and not is_top_border(cell, n) and not is_bottom_border(cell, n) and temp_assignment[cell] == 0: 
+                entry_points.append(cell)
+
+        values = [ temp_assignment[variable] for variable in variables ]
+
+        labyrinth = Labyrinth(values, n)
+
+        # We need to find a SINGLE entry that can reach all required cells 
+        for entry in entry_points: 
+            reachable = True
+            start = index_to_coord(entry, n)
+            for cell in inner_variables: 
+                # Only open cells in the original assignment have to be reachable 
+                if temp_assignment[cell] == 1 or assignment[cell] is None:
+                    continue 
+                goal = index_to_coord(cell, n)
+                reachable = Search.BFS(start, goal, labyrinth)
+                if not reachable: 
+                    break 
+            if reachable: 
                 return True
-            else: 
-                return False
+
+        return False 
 
     return Constraint(variables, reachable)
 
@@ -193,19 +205,14 @@ def createLabCSP(n: int, minimum_walls: int):
     csp.constr.extend(create_block_constraints(inner, n))
     #block_count = (len(inner) // 2) * 2
     
-    #CONSTRAINT: Every block must be reachable from the start 
-    csp.constr.expend(create_reachability_constraints(inner))
+    #CONSTRAINT: Every INNER block must be reachable from the start 
+    csp.constr.extend(create_reachability_constraints(variables, n))
     
-    
 
 
 
-        
-        
 
-        
 
-    
 
 
     #th constraint: must be solvavble
@@ -215,6 +222,5 @@ def createLabCSP(n: int, minimum_walls: int):
     csp.constr.extend(solvable)
 
     return csp 
-
 
 

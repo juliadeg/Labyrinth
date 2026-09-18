@@ -13,7 +13,7 @@ class Constraint:
             return #TO-DO Error
         # Predicate Constraint
         if callable(self.relation): 
-            return self.relation(values)   
+            return self.relation(assignment)   
         # Tabular Constraint
         else:   
             return values in self.relation
@@ -28,8 +28,8 @@ class Constraint:
         if any(value is None for value in values):
 
             if callable(self.relation): 
-                return #TO-DO
-            
+                # Partial assignments have to be handled inside the predicate constraints  
+                return self.relation(partial_assignment)
             else: 
                 for allowed_tuple in self.relation: 
                     adimissible = True
@@ -40,7 +40,6 @@ class Constraint:
                         if values[i] != allowed_tuple[i]: 
                             adimissible = False
                             break 
-
                     if adimissible: 
                         return True
         else: 
@@ -286,3 +285,4 @@ class CSP:
 
         return assignment
     
+

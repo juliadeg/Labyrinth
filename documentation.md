@@ -125,6 +125,6 @@ $$
 - $2n$-ary Constraint
 - Tabular Constraint
 
-##### Constraint ?: All open cells have to be reachable from the entrance.
+##### Constraint ?: All open non-border cells have to be reachable from the entrance.
 
 ##### Constraint ?: Every 2x2 block has to contain at least one open cell. 
