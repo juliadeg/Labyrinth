@@ -5,13 +5,49 @@ class Constraint:
         self.scope = scope
         self.relation = relation
 
-    def is_satisfied(self, assignment: tuple) -> bool:
+    # Expects all variables of current constraint scope to be assigned 
+    def is_satisfied(self, assignment: dict) -> bool:
+        values = tuple(assignment[variable] for variable in self.scope)
+
+        if any(value is None for value in values):
+            return #TO-DO Error
         # Predicate Constraint
         if callable(self.relation): 
-            return self.relation(assignment)   
+            return self.relation(values)   
         # Tabular Constraint
         else:   
-            return assignment in self.relation
+            return values in self.relation
+
+
+    # Allows some variables to be unassigned and cheks whether the assignment is consistent so far
+    def is_consistent(self, partial_assignment: dict) -> bool: 
+        values = tuple(partial_assignment[variable] for variable in self.scope)
+
+        adimissible = False
+
+        if any(value is None for value in values):
+
+            if callable(self.relation): 
+                return #TO-DO
+            
+            else: 
+                for allowed_tuple in self.relation: 
+                    adimissible = True
+
+                    for i in range(len(values)): 
+                        if values[i] is None: 
+                            continue 
+                        if values[i] != allowed_tuple[i]: 
+                            adimissible = False
+                            break 
+
+                    if adimissible: 
+                        return True
+        else: 
+            return self.is_satisfied(partial_assignment)
+
+        return adimissible 
+
 
     def arity(self):
         return len(self.scope)
@@ -28,9 +64,11 @@ class CSP:
         self.domain = domain 
         self.constraints = [] if constraints is None else constraints
 
+    # Returns a list of all binary constraints 
     def binary_constraints(self) -> list[BinaryConstraint]:
         return [ constraint for constraint in self.constraints if isinstance(constraint, BinaryConstraint)]
 
+    # Returns a list of constraints the variable is involved for 
     def constraints_for(self, variable) -> list[Constraint]: 
         variable_constraints = []
         for constraint in self.constraints:
@@ -78,6 +116,16 @@ class CSP:
 
         return unassigned
 
+    def _assigned(self, current_assignment: dict) -> list:
+
+        assigned = []
+
+        for variable in self.variables:
+            if variable in current_assignment.keys(): 
+                assigned.append(variable)
+
+        return assigned
+
 
     
     
@@ -108,16 +156,43 @@ class CSP:
 
     def _lcv(self, variable: int, assignment: dict): 
 
-        # number of conflicts / ruleouts
 
-        conflicts = []
+        neighbours = self.neighbours(variable)
+
+        assigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._assigned(assignment)]
+
+        unassigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._unassigned(assignment)]
+
+        # number of conflicts / ruleouts
+        conflicts = 0
+        min_conflicts = float('inf') 
+        lcv = None
+
+        # neighbour values ruled out
+        ruled_out = 0 
 
         # Assign one of the possible values
         for value in self.domain[variable]: 
+        
             assignment[variable] = value 
 
-        # Check constraints
-        for variable in self.neighbours(variable): 
+            #conflicts = 0
+
+            # Check consistency with already assigned variables 
+
+
+            # Check constraints
+            for neighbour in self.neighbours(variable): 
+                for constraint in self.constraints_for(neighbour): 
+                    # If an already assigned 
+                    if not constraint.is_satisfied(assignment):
+                        conflicts += 1
+
+            if conflicts < min_conflicts:
+                min_conflicts = conflicts
+                lcv = value
+        
+        return lcv
             
 
         
@@ -158,12 +233,7 @@ class CSP:
                     y_value_found = True
 
                     for constraint in binary_constraints: 
-                        if constraint.scope[0] == x_var:
-                            values = (x_value, y_value)
-                        else:
-                            values = (y_value, x_value)
-
-                        if not constraint.is_satisfied(values):
+                        if not constraint.is_satisfied({x_var: x_value, y_var: y_value}):
                             y_value_found = False
                             break 
 
