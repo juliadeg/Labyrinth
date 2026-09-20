@@ -75,6 +75,26 @@ class CSP:
                 variable_constraints.append(constraint)
         return variable_constraints
 
+    # Check consistency with constraints involving selected variables or consistency across all constraints 
+    def is_consistent(self, assignment: dict, variables: list | None = None) -> bool: 
+        constraints = []
+        if variables is None:   
+            for constraint in self.constraints: 
+                if not constraint.is_consistent(assignment): 
+                    return False 
+        else: 
+            for variable in variables: 
+                constraints.extend(self.constraints_for(variable))
+
+            # Remove duplicates
+            constraints = list(set(constraints))
+            
+            for constraint in constraints: 
+                if not constraint.is_consistent(assignment): 
+                    return False 
+        return True 
+
+    
     # Optional argument: Only show binary neighbpurs (for ac3)
     def neighbours(self, variable, arity: int | None = None ) -> list: 
         neighbours = set()
@@ -92,7 +112,7 @@ class CSP:
 
         return list(neighbours)
     
-    def binary_constraints_involving(self, x, y) -> list[Constraint]: 
+    def binary_constraints_for(self, x, y) -> list[Constraint]: 
             matching_constraints = set()
     
             for constraint in self.constraints:
@@ -116,7 +136,7 @@ class CSP:
         return unassigned
 
     def _assigned(self, current_assignment: dict) -> list:
-        # TO-DO, simply use unassigned function here
+
         assigned = []
 
         for variable in self.variables:
@@ -151,8 +171,69 @@ class CSP:
         
         None
 
+
     def _lcv(self, variable: int, assignment: dict): 
 
+        lcv = None 
+
+        temp_assignment = assignment.copy()
+
+        neighbours = self.neighbours(variable)
+
+        assigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._assigned(assignment)]
+        
+        unassigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._unassigned(assignment)]
+
+        # Extract all constraints the current variable is involved in
+        variable_constraints = self.constraints_for(variable)
+
+        satisfied = True 
+
+        # Store the number of values ruled out for each unassigned variable 
+        conflict_list = [0] * len(unassigned_neighbours)
+
+        min_conflict_list = None
+
+        # Assign all possible values for our variable 
+        for value in self.domain[variable]: 
+    
+            temp_assignment[variable] = value 
+
+            satisfied = True 
+
+            # Check that the value is consistent with current assignment
+            for constraint in variable_constraints: 
+                if not constraint.is_satisfied(temp_assignment):
+                    satisfied = False 
+                    break 
+            # If value violates constraints, try the next one
+            if not satisfied: 
+                continue 
+                
+            # After valid value is found, iterate over all unassigned neighbours and check what values are ruled out 
+
+            for neighbour in unassigned_neighbours: 
+                # Try all possible values for the neighbour
+                for value in self.domain[neighbour]:
+                    temp_assignment[neighbour] = value 
+                    if 
+
+                # Reset assignment
+                temp_assignment[neighbour] = None 
+
+        
+
+        
+
+
+
+
+        return lcv
+
+
+    def _lcv_old_ver(self, variable: int, assignment: dict): 
+
+        temp_assignment = assignment.copy()
 
         neighbours = self.neighbours(variable)
 
@@ -160,7 +241,7 @@ class CSP:
 
         unassigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._unassigned(assignment)]
 
-        # number of conflicts / ruleouts
+        # number of conflicts / rule outs
         conflicts = 0
         min_conflicts = float('inf') 
         lcv = None
@@ -171,18 +252,13 @@ class CSP:
         # Assign one of the possible values
         for value in self.domain[variable]: 
         
-            assignment[variable] = value 
-
-            #conflicts = 0
+            temp_assignment[variable] = value 
 
             # Check consistency with already assigned variables 
-
-
-            # Check constraints
             for neighbour in self.neighbours(variable): 
                 for constraint in self.constraints_for(neighbour): 
                     # If an already assigned 
-                    if not constraint.is_satisfied(assignment):
+                    if not constraint.is_satisfied(temp_assignment):
                         conflicts += 1
 
             if conflicts < min_conflicts:
@@ -190,11 +266,7 @@ class CSP:
                 lcv = value
         
         return lcv
-            
 
-        
-
-        None
 
     def _degree_heuristic(self, current_assignment: dict) -> int: 
 
@@ -221,7 +293,7 @@ class CSP:
 
             revised = False
         
-            binary_constraints = self.binary_constraints_involving(x_var, y_var)
+            binary_constraints = self.binary_constraints_for(x_var, y_var)
 
             for x_value in self.domain[x_var].copy(): 
                 y_value_found = False
@@ -266,16 +338,21 @@ class CSP:
             if _revise(x_var, y_var): 
                 if not x_domain:
                     return False
-                for k in self.neighbours(x_var):
+                for k in self.neighbours(x_var, 2):
                     if k == y_var:
                         continue
                     queue.append((k, x_var))
         return True
 
-
     
     def backtracking_search(self):
+
+        # Initialise empty assignment 
+
         assignment = dict()
+
+        for variable in self.variables: 
+            assignment[variable] = None
 
         # Pick variable:
         variable = self._degree_heuristic(assignment)
@@ -285,4 +362,3 @@ class CSP:
 
         return assignment
     
-
