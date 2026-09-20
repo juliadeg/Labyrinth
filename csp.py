@@ -110,7 +110,7 @@ class CSP:
         unassigned = []
 
         for variable in self.variables:
-            if variable not in current_assignment.keys(): 
+            if current_assignment[variable] is None: 
                 unassigned.append(variable)
 
         return unassigned
@@ -120,7 +120,7 @@ class CSP:
         assigned = []
 
         for variable in self.variables:
-            if variable in current_assignment.keys(): 
+            if current_assignment[variable] is not None:
                 assigned.append(variable)
 
         return assigned
