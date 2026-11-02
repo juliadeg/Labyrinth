@@ -13,7 +13,7 @@ $$
 
 #### Variables $\mathcal{X}$
 
-For a $n \times n$ grid we create $n \times n$ variables, each denoting one grid in the labyrinth:
+For a $n \times n$ grid we create $n \times n$ variables, each denoting one cell in the labyrinth grid:
 
 $$
 \mathcal{X} = \{X_0, X_1, X_2, \ldots, X_{n \times n - 1}\}
@@ -60,7 +60,7 @@ Instead of expressing a single $2n$-ary constraint involving all top and bottom 
 First we find all necessary border variables:
 
 $$
-\mathcal{X}_{tbborder} = \{X_{B,0}, X_{B,1}, \dots, X_{B,2n}\} \subseteq \mathcal{X}
+\mathcal{X}_{TBborder} = \{X_{B,0}, X_{B,1}, \dots, X_{B,2n}\} \subseteq \mathcal{X}
 $$
 
 For each Border variable $X_{B,i}$ we define the following constraint: 

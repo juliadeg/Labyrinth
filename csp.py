@@ -88,7 +88,7 @@ class CSP:
 
             # Remove duplicates
             constraints = list(set(constraints))
-            
+
             for constraint in constraints: 
                 if not constraint.is_consistent(assignment): 
                     return False 
@@ -179,15 +179,7 @@ class CSP:
         temp_assignment = assignment.copy()
 
         neighbours = self.neighbours(variable)
-
-        assigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._assigned(assignment)]
-        
         unassigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._unassigned(assignment)]
-
-        # Extract all constraints the current variable is involved in
-        variable_constraints = self.constraints_for(variable)
-
-        satisfied = True 
 
         # Store the number of values ruled out for each unassigned variable 
         conflict_list = [0] * len(unassigned_neighbours)
@@ -199,72 +191,32 @@ class CSP:
     
             temp_assignment[variable] = value 
 
-            satisfied = True 
-
-            # Check that the value is consistent with current assignment
-            for constraint in variable_constraints: 
-                if not constraint.is_satisfied(temp_assignment):
-                    satisfied = False 
-                    break 
-            # If value violates constraints, try the next one
-            if not satisfied: 
-                continue 
+            # Check that the value is consistent with current assignment, if not try the next value
+            if not self.is_consistent(temp_assignment, variables = [variable]): 
+                continue  
                 
             # After valid value is found, iterate over all unassigned neighbours and check what values are ruled out 
 
-            for neighbour in unassigned_neighbours: 
+            for i, neighbour in enumerate(unassigned_neighbours): 
                 # Try all possible values for the neighbour
-                for value in self.domain[neighbour]:
-                    temp_assignment[neighbour] = value 
-                    if 
+                for neighbour_value in self.domain[neighbour]:
+                    temp_assignment[neighbour] = neighbour_value 
+                    # Check consistency and add conflict if inconsistent
+                    if not self.is_consistent(temp_assignment, variables = [neighbour]):
+                        conflict_list[i] += 1 
 
                 # Reset assignment
                 temp_assignment[neighbour] = None 
-
-        
-
-        
-
-
-
-
-        return lcv
-
-
-    def _lcv_old_ver(self, variable: int, assignment: dict): 
-
-        temp_assignment = assignment.copy()
-
-        neighbours = self.neighbours(variable)
-
-        assigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._assigned(assignment)]
-
-        unassigned_neighbours = [neighbour for neighbour in neighbours if neighbour in self._unassigned(assignment)]
-
-        # number of conflicts / rule outs
-        conflicts = 0
-        min_conflicts = float('inf') 
-        lcv = None
-
-        # neighbour values ruled out
-        ruled_out = 0 
-
-        # Assign one of the possible values
-        for value in self.domain[variable]: 
-        
-            temp_assignment[variable] = value 
-
-            # Check consistency with already assigned variables 
-            for neighbour in self.neighbours(variable): 
-                for constraint in self.constraints_for(neighbour): 
-                    # If an already assigned 
-                    if not constraint.is_satisfied(temp_assignment):
-                        conflicts += 1
-
-            if conflicts < min_conflicts:
-                min_conflicts = conflicts
+                
+            # Take the sum of all condlicts and store the minimal sum and the corresponding value (lcv)
+            if min_conflict_list is None or sum(conflict_list) <= sum(min_conflict_list):
+                min_conflict_list = conflict_list.copy()
                 lcv = value
-        
+
+                
+            # Reset conflict list for each value candidate 
+            conflict_list = [0] * len(unassigned_neighbours)
+
         return lcv
 
 
@@ -344,21 +296,88 @@ class CSP:
                     queue.append((k, x_var))
         return True
 
-    
-    def backtracking_search(self):
+    def forward_checking(self, partial_assignment: dict, variable): 
 
-        # Initialise empty assignment 
+        constraints = self.constraints_for(variable)
 
+        for constraint in constraints: 
+            unassigned = self._unassigned(partial_assignment)
+            for unassigned_var in unassigned: 
+                values = self.domain[unassigned_var]
+                for value in values: 
+                    partial_assignment[unassigned_var] = value
+
+                    # Remove value if it causes an inconsietency
+                    if not self.is_consistent(partial_assignment): 
+                        self.domain[unassigned_var].remove(value)
+
+                    # Terminate if domain becomes empty i.e. no consistent assignment is found
+                    if not self.domain[unassigned_var]: 
+                        return False
+
+        return True 
+
+    def backtracking_search(self): 
+
+        # initialize empty assignment 
         assignment = dict()
-
         for variable in self.variables: 
             assignment[variable] = None
 
-        # Pick variable:
-        variable = self._degree_heuristic(assignment)
+        return self.backtrack(assignment)
+    
+    def backtrack(self, assignment):
 
-        # Pick value:
-        value = None
+        # If assignment is complete return assignment
+        if all(value is not None for value in assignment.values()): 
+            if self.is_consistent(assignment):
+                return assignment 
+            return False
+        
+        # Pick variabl using degree heuristic:
+        variable = self._degree_heuristic(assignment) 
+
+        # Order domain values based on lcv 
+        sorted_values = []
+
+        domain_copy = self.domain[variable].copy()
+
+        while domain_copy:
+            lcv = self._lcv(variable, assignment)
+            if lcv not in domain_copy:
+                break
+            sorted_values.append(lcv)
+            domain_copy.remove(lcv)
+
+        # Try assigning ordered values 
+        
+        for value in sorted_values: 
+            if self.is_consistent(assignment | {variable: value}): # temporarily assign the value
+                assignment[variable] = value 
+
+                # Safe domains before inference to restore in case of failure
+                saved_domains = [domain.copy() for domain in self.domain]
+
+                # Inference
+                inferences = self.forward_checking(assignment, variable)
+                if inferences: 
+                    # add inferences to csp (already done i think)
+                    result = self.backtrack(assignment)
+                    if result is not False: 
+                        return result 
+                # Remove inferences from CSP 
+                self.domain = saved_domains
+                # Remove incorrect assignment
+                assignment[variable] = None 
+        return False 
+
+
+
+
+        # Check consistency 
+        self.is_consistent()
+
+
 
         return assignment
     
