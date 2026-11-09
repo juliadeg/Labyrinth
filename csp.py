@@ -1,7 +1,8 @@
 from collections import deque
+from collections.abc import Callable
 
 class Constraint: 
-    def __init__(self, scope: list, relation): 
+    def __init__(self, scope: list, relation: list[tuple] | Callable[[dict], bool]): 
         self.scope = scope
         self.relation = relation
 
