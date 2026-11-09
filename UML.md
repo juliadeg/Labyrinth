@@ -46,16 +46,14 @@ classDiagram
         _assigned(current_assignment: dict) list 
 
         degree(variable, current_assignment: dict) int
-        
-        _mrv()
-
-        
 
         _lcv(variable, assignment: dict) 
 
         _degree_heuristic(current_assignment: dict) int
 
         _ac3() bool
+
+        _forward_checking() bool
 
         backtracking_search()
     }

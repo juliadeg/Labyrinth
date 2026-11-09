@@ -176,6 +176,8 @@ def create_reachability_constraints(variables, n: int):
 
     return Constraint(variables, reachable)
 
+
+
 def createLabCSP(n: int, minimum_walls: int):
 
     variables = list(range(n*n)) # nxn variables

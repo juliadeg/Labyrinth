@@ -128,3 +128,14 @@ $$
 ##### Constraint ?: All open non-border cells have to be reachable from the entrance.
 
 ##### Constraint ?: Every 2x2 block has to contain at least one open cell. 
+
+
+## Implementation 
+
+### CSP Solver 
+
+Backtracking search 
+
+
+
+## Search algorithms to solve a CSP

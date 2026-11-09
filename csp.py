@@ -167,12 +167,11 @@ class CSP:
         return degree 
 
 
-    def _mrv():
-        
-        None
+    # Optionally give the current domain (for backtracking search)
 
-
-    def _lcv(self, variable: int, assignment: dict): 
+    def _lcv(self, variable: int, assignment: dict, candidates: list | None = None): 
+        if candidates is None: 
+            candidates = self.domain[variable]
 
         lcv = None 
 
@@ -187,7 +186,7 @@ class CSP:
         min_conflict_list = None
 
         # Assign all possible values for our variable 
-        for value in self.domain[variable]: 
+        for value in candidates: 
     
             temp_assignment[variable] = value 
 
@@ -296,21 +295,35 @@ class CSP:
                     queue.append((k, x_var))
         return True
 
-    def forward_checking(self, partial_assignment: dict, variable): 
+    def _forward_checking(self, partial_assignment: dict, variable): 
 
+        # Find all constraints involving variable 
         constraints = self.constraints_for(variable)
 
+        # Find all unassigned variables
+        curr_unassigned = self._unassigned(partial_assignment)
+        
         for constraint in constraints: 
-            unassigned = self._unassigned(partial_assignment)
+    
+            # Find all variables involved in current constraint 
+            curr_scope = constraint.scope 
+
+            unassigned = list(set(curr_unassigned) & set(curr_scope))
+
             for unassigned_var in unassigned: 
+                # Possible values for our unassigned variable 
                 values = self.domain[unassigned_var]
-                for value in values: 
+                # Try all values
+                for value in values.copy(): 
                     partial_assignment[unassigned_var] = value
 
-                    # Remove value if it causes an inconsietency
+                    # Remove value from domain if it causes an inconsietency
                     if not self.is_consistent(partial_assignment): 
                         self.domain[unassigned_var].remove(value)
 
+                    # Reset the assignment 
+                    partial_assignment[unassigned_var] = None
+                        
                     # Terminate if domain becomes empty i.e. no consistent assignment is found
                     if not self.domain[unassigned_var]: 
                         return False
@@ -343,7 +356,7 @@ class CSP:
         domain_copy = self.domain[variable].copy()
 
         while domain_copy:
-            lcv = self._lcv(variable, assignment)
+            lcv = self._lcv(variable, assignment, domain_copy)
             if lcv not in domain_copy:
                 break
             sorted_values.append(lcv)
@@ -359,7 +372,7 @@ class CSP:
                 saved_domains = [domain.copy() for domain in self.domain]
 
                 # Inference
-                inferences = self.forward_checking(assignment, variable)
+                inferences = self._forward_checking(assignment, variable)
                 if inferences: 
                     # add inferences to csp (already done i think)
                     result = self.backtrack(assignment)
@@ -369,6 +382,7 @@ class CSP:
                 self.domain = saved_domains
                 # Remove incorrect assignment
                 assignment[variable] = None 
+                
         return False 
 
 
