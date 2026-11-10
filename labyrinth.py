@@ -125,14 +125,15 @@ def create_wall_constraint(variables, num_walls: int):
 def create_block_constraints(n: int) -> list[Constraint]:
 
     def make_block_predicate(square):
+        
         def block_is_valid(assignment):
             return any(assignment[x] in (0, None) for x in square)
         return block_is_valid
 
     block_constraints = []
     
-    for row in range(1, n - 2): 
-        for col in range(1, n - 2): 
+    for row in range(n - 1): 
+        for col in range(n - 1): 
 
             square = []
 
@@ -148,8 +149,6 @@ def create_block_constraints(n: int) -> list[Constraint]:
     return block_constraints
 
 def create_reachability_constraints(variables, n: int): 
-
-# TO-DO: if we pass csp we dont need variables
 
     def reachable(assignment: dict):  
 
@@ -209,7 +208,7 @@ def create_solvability_constraint(cells, n):
 
     def solvable(partial_assignment: dict):
         # Case 1: No entry or no exit is found 
-        if all(partial_assignment[cell] == 1 for cell in left_border) or all(partial_assignment[cell] == 1 for cell in left_border): 
+        if all(partial_assignment[cell] == 1 for cell in left_border) or all(partial_assignment[cell] == 1 for cell in right_border): 
             return False
 
         # Case 2: Exit and entry are found ( cell is 0 or None )
@@ -227,7 +226,11 @@ def create_solvability_constraint(cells, n):
         # Try every possible exit-entry point combination 
         for start in entry_points: 
             for goal in exit_points: 
-                search = Search.BFS(start, goal, labyrinth)
+                search = Search.BFS(
+                    index_to_coord(start, n),
+                    index_to_coord(goal, n),
+                    labyrinth,
+                )
                 # Return once a valud path was found
                 if search: 
                     return True 
@@ -267,7 +270,7 @@ def createLabCSP(n: int, minimum_walls: int):
     #4th contstraint at least nWall walls (except border)
     csp.constraints.append(create_wall_constraint(inner, minimum_walls))
 
-    # CONSTRAINT: Every inner 2x2 block has to contain at least one open cell.
+    # CONSTRAINT: Every 2x2 block, including borders, must contain at least one open cell.
     csp.constraints.extend(create_block_constraints(n))
     #block_count = (len(inner) // 2) * 2
     

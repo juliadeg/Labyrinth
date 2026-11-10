@@ -125,9 +125,101 @@ $$
 - $2n$-ary Constraint
 - Tabular Constraint
 
-##### Constraint ?: All open non-border cells have to be reachable from the entrance.
+##### Constraint 4: Every overlapping 2x2 block has to contain at least one open cell. 
 
-##### Constraint ?: Every 2x2 block has to contain at least one open cell. 
+The purpose of this constraint is to avoid big chunks of walls inside our labyrinth.
+
+For a $n \times n$ labyrinth a $2 \times 2$ block is made of the following variables.
+
+For every variable $X_{i,j}$ where $i,j \in \{1, \ldots, n-1\}$ we have $X_{i,j}, X_{i+1,j}, X_{i,j+1}, X_{i+1,j+1}$.
+
+In total we will have $(n-1) \times (n-1)$ such blocks. For each block we define the 4-ary constraint:
+
+$$
+C_{4,i,j} =
+\begin{cases}
+Scope(C_{4,i,j}) = \{X_{i,j}, X_{i+1,j}, X_{i,j+1}, X_{i+1,j+1}\} \\
+Relation(C_{4,i,j}) = \operatorname{block\_is\_valid}(X_{i,j}, X_{i+1,j}, X_{i,j+1}, X_{i+1,j+1})
+\end{cases}
+$$
+
+# CHANGE TO Putting PARTIAL ASSIGNMENT INTO PARAMETER
+
+Where we define the `block_is_valid` function as follows:
+
+$$
+\operatorname{block\_is\_valid}(X_{i,j}, X_{i+1,j}, X_{i,j+1}, X_{i+1,j+1}) =
+\begin{cases}
+\mathrm{False} & \text{if the } 2 \times 2 \text{ block contains only 1s}, \\
+\mathrm{True} & \text{otherwise}.
+\end{cases}
+$$
+
+This leaves us with $(n-1) \times (n-1)$ 4-ary constraints.
+
+Note that this function treats `None` fields as open fields. So an unassigned $2 \times 2$ block for example would still be valid.
+
+- 4-ary constraint
+- Predicate constraint
+
+##### Constraint 5: All open non-border cells have to be reachable from the entrance.
+
+To implement this we will simply run a BFS algorithm on every open non-border cell. Once again cells marked as `None` will be treated as open cells.
+
+$$
+C_5 =
+\begin{cases}
+Scope(C_5) = \{X_0, X_1, \ldots, X_{n \times n - 1}\} \\
+Relation(C_5) = \operatorname{reachable}(assignment)
+\end{cases}
+$$
+
+Since we do not define any strict entry point we must consider every possible entry point. We will try every single possible entry point and stop once we find one from which all open non-border cells are reachable.
+
+So `reachable` is defined as follows:
+
+```text
+reachable(assignment):
+    find possible entry points by considering open (or unassigned) left border variables,
+    excluding the corners
+    for every entry point:
+        for every assigned open non-border cell:
+            run BFS
+            if BFS is False:
+                break and try the next entry point
+        return True if all assigned open non-border cells are reachable from this entry point
+
+    return False if no entry point was found from which all open non-border cells are reachable
+```
+
+- $n^2$-ary Constraint
+- Predicate Constraint
+
+##### Constraint 6: The Labyrinth must be solvable, i.e. a valid path from start to goal must exist
+
+The constraints are not enforced sequentially; therefore, as we did for the reachability constraint, we cannot simply run BFS with a fixed start and goal point. Instead, we must consider every possible start, as well as every possible goal point of the current (partial) assignment and find at least one valid path between one of those. 
+
+
+$$
+C_6 =
+\begin{cases}
+Scope(C_6) = \{X_0, X_1, \ldots, X_{n \times n - 1}\} \\
+Relation(C_6) = \operatorname{solvable}(assignment)
+\end{cases}
+$$
+
+```text
+solvable(assignment):
+    for every possible starting point:
+        for every possible ending point:
+            if BFS is True:
+                return True
+    return False if no possible solving path was found
+```
+
+- $n^2$-ary Constraint
+- Predicate Constraint
+
 
 
 ## Implementation 
