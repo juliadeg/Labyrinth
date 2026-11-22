@@ -23,6 +23,15 @@ class Position:
             return NotImplemented
         return (self.x == other.x and self.y == other.y)
 
+    def __add__(self, other): 
+
+        if isinstance(other, Position):
+            return Position(self.x + other.x, self.y + other.y)
+
+        # changes original position 
+        if isinstance(other, tuple):
+            return Position(other.x + )
+
 
 class Labyrinth:
     def __init__(self, grid: list[list[int]] | list[int], n: int | None = None): 
@@ -195,4 +204,21 @@ class Search:
         return result
 
 
+
+
+def flood_fill(start: Position, labyrinth: Labyrinth): 
+    # Case distinction 
+    # Case 1: Labyrinth is list[int]
+    # Case 2: Labyrinth is list[list[int]]
+
+
+    curr_position = start 
+
+    # Try all directions 
+    for dir in actions: 
+        if curr_position + 
+
+
+
+    return 
 

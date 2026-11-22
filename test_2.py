@@ -1,7 +1,7 @@
 
 from labyrinth import createLabCSP
 
-n = 4
+n = 6
 csp = createLabCSP(n, minimum_walls=1)
 solution = csp.backtracking_search()
 

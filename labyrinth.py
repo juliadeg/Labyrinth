@@ -14,6 +14,8 @@ from search import (
 
 from collections import deque
 
+
+
 def permutate(default, k, n): 
     permutations = []
     for i in range(n): 
